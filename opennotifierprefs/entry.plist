@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = OpenNotifierPrefs;
+	cell = PSLinkCell;
+	detail = OpenNotifierPrefsListController;
+	icon = OpenNotifierPrefs.png;
+	isController = 1;
+	label = OpenNotifierPrefs;
+    };
+}
