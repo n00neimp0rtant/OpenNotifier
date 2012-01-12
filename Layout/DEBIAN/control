@@ -1,9 +1,9 @@
 Package: com.n00neimp0rtant.opennotifier
 Name: OpenNotifier
-Depends: mobilesubstrate
-Version: 0.0.1
+Depends: mobilesubstrate, libstatusbar
+Version: 1.1.1
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
+Description: Pseudobadges DON'T work yet
 Maintainer: n00neimp0rtant
 Author: n00neimp0rtant
 Section: Tweaks

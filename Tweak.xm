@@ -1,3 +1,4 @@
+#import <notify.h>
 #import <SpringBoard5/SpringBoard.h>
 #import "LSStatusBarItem.h"
 
@@ -27,7 +28,39 @@ static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] in
 	{
 		[currentIconSetList setObject:[NSMutableSet setWithCapacity:1] forKey:name];
 	}
+	if([[openNotifierPrefs objectForKey:@"ONSilentModeIcon"] boolValue])
+	{
+		uint64_t state; 
+		int token; 
+		notify_register_check("com.apple.springboard.ringerstate", &token); 
+		notify_get_state(token, &state); 
+		notify_cancel(token); 
+		if(state == 0)
+		{
+			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
+			[statusBarItem setImageName:@"ON_Silent"];
+			[statusBarItems setObject:statusBarItem forKey:@"Silent"];
+		}
+	}
 	return %orig;
+}
+
+-(void)ringerChanged:(int)changed
+{
+	%orig;
+	if([[openNotifierPrefs objectForKey:@"ONSilentModeIcon"] boolValue])
+	{
+		if (changed == 1)
+		{
+			[statusBarItems removeObjectForKey:@"Silent"];
+		}
+		if (changed == 0)
+		{
+			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
+			[statusBarItem setImageName:@"ON_Silent"];
+			[statusBarItems setObject:statusBarItem forKey:@"Silent"];
+		}
+	}
 }
 %end
 
@@ -49,7 +82,7 @@ static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] in
 	{
 		for(NSString* name in iconList)
 		{
-			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentLeft] autorelease];;
+			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentRight] autorelease];;
 			[statusBarItem setImageName:[NSString stringWithFormat:@"ON_%@", name]];
 			[statusBarItems setObject:statusBarItem forKey:name];
 			
