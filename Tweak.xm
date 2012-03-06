@@ -1,5 +1,5 @@
 #import <notify.h>
-#import <SpringBoard5/SpringBoard.h>
+#import <SpringBoard5/SBApplicationIcon.h>
 #import "LSStatusBarItem.h"
 
 static NSDictionary* openNotifierPrefs;
@@ -37,7 +37,11 @@ static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] in
 		notify_cancel(token); 
 		if(state == 0)
 		{
-			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
+			LSStatusBarItem* statusBarItem;
+			if([[openNotifierPrefs objectForKey:@"ONSilentIconLeft"] boolValue])
+				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentLeft] autorelease];
+			else
+				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
 			[statusBarItem setImageName:@"ON_Silent"];
 			[statusBarItems setObject:statusBarItem forKey:@"Silent"];
 		}
@@ -56,7 +60,11 @@ static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] in
 		}
 		if (changed == 0)
 		{
-			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
+			LSStatusBarItem* statusBarItem;
+			if([[openNotifierPrefs objectForKey:@"ONSilentIconLeft"] boolValue])
+				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentLeft] autorelease];
+			else
+				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
 			[statusBarItem setImageName:@"ON_Silent"];
 			[statusBarItems setObject:statusBarItem forKey:@"Silent"];
 		}
@@ -82,7 +90,11 @@ static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] in
 	{
 		for(NSString* name in iconList)
 		{
-			LSStatusBarItem* statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentRight] autorelease];;
+			LSStatusBarItem* statusBarItem;
+			if([[openNotifierPrefs objectForKey:@"ONNotifIconsLeft"] boolValue])
+				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentLeft] autorelease];
+			else
+				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentRight] autorelease];
 			[statusBarItem setImageName:[NSString stringWithFormat:@"ON_%@", name]];
 			[statusBarItems setObject:statusBarItem forKey:name];
 			

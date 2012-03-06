@@ -16,7 +16,7 @@
 			<key>label</key>
 			<string>General</string>
 			<key>footerText</key>
-			<string>The silent mode icon toggle here is a temporary solution; it will be better integrated in a future release.</string>
+			<string>Show notification icons on the left side of the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -34,6 +34,24 @@
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.n00neimp0rtant.opennotifier</string>
+			<key>key</key>
+			<string>ONNotifIconsLeft</string>
+			<key>label</key>
+			<string>↳ Align Left</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Show silent mode icon on the left side of the status bar.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
 			<true/>
 			<key>defaults</key>
 			<string>com.n00neimp0rtant.opennotifier</string>
@@ -41,6 +59,18 @@
 			<string>ONSilentModeIcon</string>
 			<key>label</key>
 			<string>Silent Mode Icon</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.n00neimp0rtant.opennotifier</string>
+			<key>key</key>
+			<string>ONSilentIconLeft</string>
+			<key>label</key>
+			<string>↳ Align Left</string>
 		</dict>
 		<dict>
 			<key>cell</key>
