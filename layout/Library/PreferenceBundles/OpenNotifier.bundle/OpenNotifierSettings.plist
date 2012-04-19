@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>OpenNotifier</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>General</string>
+			<key>footerText</key>
+			<string>Show notification icons on the left side of the status bar.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONEnabled</string>
+			<key>label</key>
+			<string>Enabled</string>			
+			<key>default</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONNotifIconsLeft</string>
+			<key>label</key>
+			<string>↳ Align Left</string>
+			<key>default</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Show silent mode icon on the left side of the status bar.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONSilentModeIcon</string>
+			<key>label</key>
+			<string>Silent Mode Icon</string>			
+			<key>default</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONSilentIconLeft</string>
+			<key>label</key>
+			<string>↳ Align Left</string>
+			<key>default</key>
+			<false/>
+		</dict>
+<!--		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Some apps like Sportacular do not get badges for push notifications. You can enable them here.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>detail</key>
+			<string>OpenNotifierSettingsPseudoBadgesController</string>
+			<key>label</key>
+			<string>Pseudo-Badges</string>
+		</dict>-->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>For support or feature suggestions, please mention @OpenNotifier on Twitter (or email n00neimp0rtant@me.com).</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>detail</key>
+			<string>OpenNotifierAppsController</string>
+			<key>label</key>
+			<string>Apps</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,105 +1,201 @@
+#import "Tweak.h"
+#import "Preferences.h"
+#import <LibStatusBar/LSStatusBarItem.h>
 #import <notify.h>
-#import <SpringBoard5/SBApplicationIcon.h>
-#import "LSStatusBarItem.h"
+#import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBMediaController.h>
+#import <SpringBoard/SBUserAgent.h>
 
-static NSDictionary* openNotifierPrefs;
-static NSMutableDictionary* statusBarItems = [[NSMutableDictionary alloc] init];
-static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] init];
+#pragma mark #region [ Private Variables ]
+static ONPreferences* preferences;
+static NSMutableDictionary* statusBarItems = [[NSMutableDictionary dictionary] retain];
+static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary dictionary] retain];
+static NSMutableDictionary* trackedBadges = [[NSMutableDictionary dictionary] retain];
+static LSStatusBarItem* silentIconItem;
+#pragma mark #endregion
 
-%hook SpringBoard
--(id)init
+#pragma mark #region [ Global Functions ]
+
+static LSStatusBarItem* CreateStatusBarItem(NSString* uniqueName, NSString* iconName, bool onLeft)
 {
-	openNotifierPrefs = [[NSDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.n00neimp0rtant.opennotifier.plist"];
-	NSMutableArray* imageNames = [NSMutableArray arrayWithArray:[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/System/Library/Frameworks/UIKit.framework/" error:nil]];
-	NSMutableSet* filteredNames = [NSMutableSet set];
-	for(NSString* name in imageNames)
+	LSStatusBarItem* item = [[[%c(LSStatusBarItem) alloc] 
+		initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", uniqueName] 
+		alignment:onLeft ? StatusBarAlignmentLeft : StatusBarAlignmentRight] autorelease];
+				
+	item.imageName = [NSString stringWithFormat:@"ON_%@", iconName];		
+	return item;
+}
+
+static void ProcessApplicationIcon(NSString* identifier)
+{
+	if (!preferences.enabled) return;	
+	
+	ONApplication* app;
+	if (!(app = [preferences getApplication:identifier])) return;
+	bool shouldShow = [[trackedBadges objectForKey:identifier] boolValue];
+	
+	for (NSString* name in app.icons.allKeys)
 	{
-		if([name hasPrefix:@"Silver_ON_"] || [name hasPrefix:@"Black_ON_"])
+		if (![currentIconSetList.allKeys containsObject:name]) continue; // icon doesn't exist
+		
+		ONApplicationIcon* icon = [app.icons objectForKey:name];			
+		bool onLeft;								
+		switch (icon.alignment)
 		{
-			NSMutableString* temp = [NSMutableString stringWithString:name];
-			[temp replaceOccurrencesOfString:@"Silver_ON_" withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [temp length])];
-			[temp replaceOccurrencesOfString:@"Black_ON_" withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [temp length])];
-			[temp replaceOccurrencesOfString:@".png" withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [temp length])];
-			[temp replaceOccurrencesOfString:@"@2x" withString:@"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [temp length])];
-			[filteredNames addObject:[NSString stringWithString:temp]];
+			case ONIconAlignmentLeft: onLeft = true; break;
+			case ONIconAlignmentRight: onLeft = false; break;
+			default: onLeft = preferences.iconsOnLeft; break;
 		}
+				
+		// avoid colliding with another icon with the same name	and alignment
+		NSString* uniqueName = [NSString stringWithFormat:@"%@~%d", name, onLeft];
+
+		// applications may be sharing name and alignment so lets 
+		// track it properly before we readd or remove it		
+		NSMutableDictionary* uniqueIcon = [statusBarItems objectForKey:uniqueName];
+		if (!uniqueIcon) uniqueIcon = [NSMutableDictionary dictionary];
+		
+		NSMutableArray* apps = [uniqueIcon objectForKey:ONApplicationsKey];
+		if (!apps) apps = [NSMutableArray array];
+		
+		if (!shouldShow)
+		{
+			[apps removeObject:identifier];
+			if (apps.count == 0) [statusBarItems removeObjectForKey:uniqueName];
+		}
+		else
+		{	
+			[apps addObject:identifier];
+			[uniqueIcon setObject:apps forKey:ONApplicationsKey];
+			
+			if (![uniqueIcon.allKeys containsObject:ONIconNameKey])
+				[uniqueIcon setObject:CreateStatusBarItem(uniqueName, name, onLeft) forKey:ONIconNameKey];
+			
+			[statusBarItems setObject:uniqueIcon forKey:uniqueName];			
+		}
+	}	
+}
+
+static void ReloadSettings()
+{
+	if (!preferences) preferences = ONPreferences.sharedInstance;
+	else [preferences reload];
+}
+
+static void UpdateSilentIcon()
+{
+	if (silentIconItem) 
+	{ 
+		[silentIconItem release];
+		silentIconItem = nil;
 	}
-	for(NSString* name in filteredNames)
+		
+	if (preferences.silentModeEnabled)
 	{
+		bool muted = false;
+		if (%c(SBMediaController) && [%c(SBMediaController) instancesRespondToSelector:@selector(isRingerMuted)]) 
+		{
+			muted = [[%c(SBMediaController) sharedInstance] isRingerMuted];
+		}
+		else 
+		{
+			// I'm not sure if this is needed or not but leaving it here just in case
+			// it needs to be backwards compatible
+			uint64_t state; 
+			int token; 
+			notify_register_check("com.apple.springboard.ringerstate", &token); 
+			notify_get_state(token, &state); 
+			notify_cancel(token); 	
+			muted = (!state);
+		}
+	
+		if (muted) silentIconItem = [CreateStatusBarItem(ONSilentKey, ONSilentKey, preferences.silentIconOnLeft) retain];
+	}
+}
+
+static void SilentModeSettingsChanged()
+{
+	ReloadSettings();	
+	UpdateSilentIcon();
+}
+
+static void IconSettingsChanged()
+{
+	ReloadSettings();
+	
+	[statusBarItems removeAllObjects];
+
+	if (!preferences.enabled) return;
+	
+	[trackedBadges.allKeys enumerateObjectsUsingBlock: ^(id key, NSUInteger index, BOOL* stop){
+		ProcessApplicationIcon(key);
+	}];		
+}
+#pragma mark #endregion
+
+#pragma mark #region [ SpringBoard ]
+%hook SpringBoard
+
+-(id)init
+{	
+	ReloadSettings();	
+	NSMutableArray* imageNames = [NSMutableArray arrayWithArray:[[NSFileManager defaultManager] 
+		contentsOfDirectoryAtPath:@"/System/Library/Frameworks/UIKit.framework/" error:nil]
+	];
+
+	NSRegularExpression* regex = [[NSRegularExpression regularExpressionWithPattern:IconRegexPattern
+		options:NSRegularExpressionCaseInsensitive error:nil] retain];
+	
+	for (NSString* name in imageNames)
+	{		
+		NSTextCheckingResult* match = [regex firstMatchInString:name options:0 range:NSMakeRange(0, name.length)];
+		if (!match) continue;
+		name = [name substringWithRange:[match rangeAtIndex:1]];
 		[currentIconSetList setObject:[NSMutableSet setWithCapacity:1] forKey:name];
 	}
-	if([[openNotifierPrefs objectForKey:@"ONSilentModeIcon"] boolValue])
-	{
-		uint64_t state; 
-		int token; 
-		notify_register_check("com.apple.springboard.ringerstate", &token); 
-		notify_get_state(token, &state); 
-		notify_cancel(token); 
-		if(state == 0)
-		{
-			LSStatusBarItem* statusBarItem;
-			if([[openNotifierPrefs objectForKey:@"ONSilentIconLeft"] boolValue])
-				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentLeft] autorelease];
-			else
-				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
-			[statusBarItem setImageName:@"ON_Silent"];
-			[statusBarItems setObject:statusBarItem forKey:@"Silent"];
-		}
-	}
+	[regex release];
+			
 	return %orig;
+}
+
+-(void)applicationDidFinishLaunching:(id)application
+{
+	%orig;
+	UpdateSilentIcon();	
+	
+	AddObserver((CFStringRef)IconSettingsChangedNotification, IconSettingsChanged);
+	AddObserver((CFStringRef)SilentModeChangedNotification, SilentModeSettingsChanged);
+				
+	#ifdef DEBUGPREFS
+	dispatch_queue_t queue = dispatch_get_main_queue();
+	dispatch_async(queue, 
+	^{
+		[[%c(SBUserAgent) sharedUserAgent] openURL:[NSURL URLWithString:@"prefs:root=OpenNotifier"] allowUnlock:true animated:true];
+		dispatch_release(queue);	
+	});
+	#endif
 }
 
 -(void)ringerChanged:(int)changed
 {
 	%orig;
-	if([[openNotifierPrefs objectForKey:@"ONSilentModeIcon"] boolValue])
-	{
-		if (changed == 1)
-		{
-			[statusBarItems removeObjectForKey:@"Silent"];
-		}
-		if (changed == 0)
-		{
-			LSStatusBarItem* statusBarItem;
-			if([[openNotifierPrefs objectForKey:@"ONSilentIconLeft"] boolValue])
-				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentLeft] autorelease];
-			else
-				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:@"opennotifier.Silent" alignment:StatusBarAlignmentRight] autorelease];
-			[statusBarItem setImageName:@"ON_Silent"];
-			[statusBarItems setObject:statusBarItem forKey:@"Silent"];
-		}
-	}
+	UpdateSilentIcon();
 }
 %end
+#pragma mark #endregion
 
+#pragma mark #region [ SBApplicationIcon ]
 %hook SBApplicationIcon
+
 -(void)setBadge:(id)badge
 {
 	%orig;
-	NSArray* iconList = [[openNotifierPrefs objectForKey:@"apps"] objectForKey:[self leafIdentifier]];
-	if(badge == 0 || badge == nil || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]])
-	{
-		for(NSString* name in iconList)
-		{
-			[[currentIconSetList objectForKey:name] removeObject:[self leafIdentifier]];
-			if([[currentIconSetList objectForKey:name] count] == 0)
-				[statusBarItems removeObjectForKey:name];
-		}
-	}
-	else
-	{
-		for(NSString* name in iconList)
-		{
-			LSStatusBarItem* statusBarItem;
-			if([[openNotifierPrefs objectForKey:@"ONNotifIconsLeft"] boolValue])
-				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentLeft] autorelease];
-			else
-				statusBarItem = [[[objc_getClass("LSStatusBarItem") alloc] initWithIdentifier:[NSString stringWithFormat:@"opennotifier.%@", name] alignment:StatusBarAlignmentRight] autorelease];
-			[statusBarItem setImageName:[NSString stringWithFormat:@"ON_%@", name]];
-			[statusBarItems setObject:statusBarItem forKey:name];
-			
-			[[currentIconSetList objectForKey:name] addObject:[self leafIdentifier]];
-		}
-	}
+
+	//Log("identifier = %@ badge = %@", self.leafIdentifier, badge);
+	
+	bool showBadge = !(badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);	
+	[trackedBadges setObject:NSBool(showBadge) forKey:self.leafIdentifier];	
+	if (preferences.enabled) ProcessApplicationIcon(self.leafIdentifier);
 }
 %end
+#pragma mark #endregion

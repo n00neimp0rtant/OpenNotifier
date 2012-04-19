@@ -1,0 +1,12 @@
+{
+	entry = 
+	{
+		bundle = OpenNotifier;
+		cell = PSLinkCell;
+		icon = OpenNotifier.png;
+		detail = OpenNotifierSettingsRootController;
+		isController = 1;
+		label = "OpenNotifier";		
+	};
+}
+
