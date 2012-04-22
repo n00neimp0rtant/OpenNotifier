@@ -48,7 +48,15 @@ beta::
 before-release:: all		
 	@$(EDITOR) layout/DEBIAN/control
 	@$(MAKE) after-release
-	
-after-release::	stage before-package	
-	@echo "Making Package $(THEOS_PACKAGE_NAME) Version: $(THEOS_PACKAGE_BASE_VERSION)" 
-	@$(FAKEROOT) -r dpkg-deb -b $(THEOS_STAGING_DIR) "$(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_NAME)_$(THEOS_PACKAGE_BASE_VERSION)$(if $(PACKAGE_BUILDNAME),"+"$(PACKAGE_BUILDNAME))_$(THEOS_PACKAGE_ARCH).deb" > /dev/null 2>&1
+
+after-release:: FINAL_CONTROL_FILE = "$(THEOS_STAGING_DIR)/DEBIAN/control"
+after-release:: stage	
+	@rm -rf $(THEOS_PROJECT_DIR)/.theos/packages
+	@echo "Making Package $(THEOS_PACKAGE_NAME) Version: $(THEOS_PACKAGE_BASE_VERSION)"
+	$(ECHO_NOTHING)rsync -a "$(THEOS_PROJECT_DIR)/layout/DEBIAN" "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> $(FINAL_CONTROL_FILE)$(ECHO_END)
+	@$(FAKEROOT) -r dpkg-deb -b $(THEOS_STAGING_DIR) "$(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_NAME)_$(THEOS_PACKAGE_BASE_VERSION)$(if $(PACKAGE_BUILDNAME),"+"$(PACKAGE_BUILDNAME))_$(THEOS_PACKAGE_ARCH).deb" > /dev/null 2>&1	
+
+after-release::	
+#follow is used incase someone does a make release install
+_THEOS_PACKAGE_LAST_VERSION = $(THEOS_PACKAGE_BASE_VERSION)
