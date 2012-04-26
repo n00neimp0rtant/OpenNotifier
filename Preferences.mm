@@ -9,7 +9,7 @@
 -(id)init
 {
 	if (!(self = [super init])) return nil;
-	_dictionary = [[NSMutableDictionary dictionary] retain];
+	_dictionary = [[NSMutableDictionary alloc] init];
 	return self;
 }
 
@@ -107,7 +107,7 @@ static ONPreferences* _instance;
 
 +(id)sharedInstance
 { 		
-	return (_instance = [[ONPreferences alloc] init]);
+	return (_instance = [[[ONPreferences alloc] init] retain]);
 }
 
 -(id)init
@@ -167,7 +167,7 @@ static ONPreferences* _instance;
 -(NSMutableDictionary*)applications
 {
 	if (_applications) return _applications;
-	_applications = [[NSMutableDictionary dictionary] retain];
+	_applications = [[NSMutableDictionary alloc] init];
 		
 	switch (self.schemaVersion)
 	{
@@ -245,14 +245,10 @@ static ONPreferences* _instance;
 
 -(void)reload
 {
-	if (_applications) 
-	{
-		[_applications release];
-		_applications = nil;
-	}
+	if (_applications) { [_applications release]; _applications = nil; }
 	if (_data) [_data release];
-	_data = [[NSMutableDictionary dictionaryWithContentsOfFile:ONPreferencesFile] retain];
-	if (!_data) _data = [[NSMutableDictionary dictionary] retain]; // new setup
+	_data = [[NSMutableDictionary alloc] initWithContentsOfFile:ONPreferencesFile];
+	if (!_data) _data = [[NSMutableDictionary alloc] init]; // new setup
 }
 
 -(void)saveWithNotification:(NSString*)notification

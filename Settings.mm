@@ -23,9 +23,6 @@ static ONPreferences* preferences;
 static NSMutableDictionary* cachedIcons;
 static UIImage* defaultIcon;
 static NSMutableArray* statusIcons;
-
-SEL const SELGetPreferenceValue = @selector(readPreferenceValue:);
-SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 #pragma mark #endregion
 
 #pragma mark #region [ ALLinkCell ]
@@ -83,7 +80,7 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 	top = top > (maxHeight/2) ? maxHeight-(maxHeight/2) : top;
 	
 	[icon drawInRect:CGRectMake(left, top, width, height)];
-	icon = [UIGraphicsGetImageFromCurrentImageContext() retain];
+	icon = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
 	
 	[cachedIcons setObject:icon forKey:name];
@@ -125,7 +122,7 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 -(id)init
 {
 	if (!(self = [super init])) return nil;
-	preferences = [ONPreferences.sharedInstance retain];
+	preferences = ONPreferences.sharedInstance;
 	return self;
 }
 
@@ -233,8 +230,8 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 	
 	CGRect bounds = [[UIScreen mainScreen] bounds];
 	
-	_dataSource = [[[ALApplicationTableDataSource alloc] init] retain];	
-	_tableView = [[[UITableView alloc] initWithFrame:CGRectMake(0, 0, bounds.size.width, bounds.size.height) style:UITableViewStyleGrouped] retain];
+	_dataSource = [[ALApplicationTableDataSource alloc] init];	
+	_tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, bounds.size.width, bounds.size.height) style:UITableViewStyleGrouped];
 	_tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	_tableView.delegate = self;	
 	_tableView.dataSource = _dataSource;
@@ -387,13 +384,15 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 {
 	if ((self = [super init]) == nil) return nil;
 	
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+	
 	if (!defaultIcon) defaultIcon = [[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeSmall forDisplayIdentifier:@"com.apple.WebSheet"] retain];
-	if (!cachedIcons) cachedIcons = [[NSMutableDictionary dictionary] retain];				
+	if (!cachedIcons) cachedIcons = [[NSMutableDictionary alloc] init];				
 	if (!statusIcons) 
 	{
-		statusIcons = [[NSMutableArray array] retain];	
-		NSRegularExpression* regex = [[NSRegularExpression regularExpressionWithPattern:SilverIconRegexPattern
-			options:NSRegularExpressionCaseInsensitive error:nil] retain];	
+		statusIcons = [[NSMutableArray alloc] init];	
+		NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:SilverIconRegexPattern
+			options:NSRegularExpressionCaseInsensitive error:nil];	
 			
 		for (NSString* path in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:iconPath error:nil])
 		{				
@@ -402,13 +401,13 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 			NSString* name = [path substringWithRange:[match rangeAtIndex:1]];	
 			if (![statusIcons containsObject:name]) [statusIcons addObject:name];
 		}
-		[regex release];
 		
 		[statusIcons sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];	
 	}
 	
 	_application = [preferences.applications objectForKey:_identifier];
-	
+
+	[pool drain];
 	return self;
 }
 
@@ -426,7 +425,7 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 {
 	if (_specifiers) return _specifiers;
 	
-	_specifiers = [[NSMutableArray array] retain];
+	_specifiers = [[NSMutableArray alloc] init];
 			
 	for (NSString* name in statusIcons)
 	{
@@ -532,16 +531,16 @@ SEL const SELSetPreferenceValue = @selector(setPreferenceValue:specifier:);
 	if (_specifiers) return _specifiers;
 	
 	ONApplication* app = [preferences getApplication:[self.specifier propertyForKey:ONAppIdentifierKey]];		
-	_specifiers = [[NSMutableArray array] retain];
+	_specifiers = [[NSMutableArray alloc] init];
 
 	PSSpecifier* specifier;
 	
 	// Enabled Switch
 	specifier = [PSSpecifier preferenceSpecifierNamed:@"Enabled" target:self 
-		set:SELSetPreferenceValue
-		get:SELGetPreferenceValue 
+		set:@selector(setPreferenceValue:specifier:)
+		get:@selector(readPreferenceValue:)
 		detail:nil cell:PSSwitchCell edit:nil
-	];					
+	];	
 	[specifier setProperty:ONEnabledKey forKey:PSIDKey];
 	[_specifiers addObject:specifier];
 	

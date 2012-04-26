@@ -8,9 +8,9 @@
 
 #pragma mark #region [ Private Variables ]
 static ONPreferences* preferences;
-static NSMutableDictionary* statusBarItems = [[NSMutableDictionary dictionary] retain];
-static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary dictionary] retain];
-static NSMutableDictionary* trackedBadges = [[NSMutableDictionary dictionary] retain];
+static NSMutableDictionary* statusBarItems = [[NSMutableDictionary alloc] init];
+static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] init];
+static NSMutableDictionary* trackedBadges = [[NSMutableDictionary alloc] init];
 static LSStatusBarItem* silentIconItem;
 #pragma mark #endregion
 
@@ -138,13 +138,14 @@ static void IconSettingsChanged()
 
 -(id)init
 {	
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 	ReloadSettings();	
 	NSMutableArray* imageNames = [NSMutableArray arrayWithArray:[[NSFileManager defaultManager] 
 		contentsOfDirectoryAtPath:@"/System/Library/Frameworks/UIKit.framework/" error:nil]
 	];
 
-	NSRegularExpression* regex = [[NSRegularExpression regularExpressionWithPattern:IconRegexPattern
-		options:NSRegularExpressionCaseInsensitive error:nil] retain];
+	NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:IconRegexPattern
+		options:NSRegularExpressionCaseInsensitive error:nil];
 	
 	for (NSString* name in imageNames)
 	{		
@@ -153,8 +154,8 @@ static void IconSettingsChanged()
 		name = [name substringWithRange:[match rangeAtIndex:1]];
 		[currentIconSetList setObject:[NSMutableSet setWithCapacity:1] forKey:name];
 	}
-	[regex release];
-			
+	
+	[pool drain];
 	return %orig;
 }
 

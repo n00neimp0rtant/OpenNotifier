@@ -58,5 +58,5 @@ after-release:: stage
 	@$(FAKEROOT) -r dpkg-deb -b $(THEOS_STAGING_DIR) "$(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_NAME)_$(THEOS_PACKAGE_BASE_VERSION)$(if $(PACKAGE_BUILDNAME),"+"$(PACKAGE_BUILDNAME))_$(THEOS_PACKAGE_ARCH).deb" > /dev/null 2>&1	
 
 after-release::	
-#follow is used incase someone does a make release install
+#following is used incase someone does a make release install
 _THEOS_PACKAGE_LAST_VERSION = $(THEOS_PACKAGE_BASE_VERSION)
