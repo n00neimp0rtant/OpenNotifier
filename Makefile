@@ -10,6 +10,7 @@ ADDITIONAL_LDFLAGS = -L./lib
 
 TWEAK_NAME = OpenNotifier
 OpenNotifier_FILES = Tweak.xm Preferences.mm
+OpenNotifier_LIBRARIES = statusbar
 
 BUNDLE_NAME = OpenNotifierSettings
 OpenNotifierSettings_BUNDLE_NAME = OpenNotifier
