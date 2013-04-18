@@ -6,7 +6,7 @@
 @interface ALApplicationTableDataSource : NSObject <UITableViewDataSource> {
 @private
 	ALApplicationList *appList;
-	NSArray *_sectionDescriptors;
+	NSMutableArray *_sectionDescriptors;
 	NSMutableArray *_displayIdentifiers;
 	NSMutableArray *_displayNames;
 	NSMutableArray *_iconsToLoad;
@@ -25,7 +25,12 @@
 @property (nonatomic, retain) UITableView *tableView;
 @property (nonatomic, retain) NSBundle *localizationBundle;
 
+- (id)cellDescriptorForIndexPath:(NSIndexPath *)indexPath; // NSDictionary if custom cell; NSString if app cell
 - (NSString *)displayIdentifierForIndexPath:(NSIndexPath *)indexPath;
+
+- (void)insertSectionDescriptor:(NSDictionary *)sectionDescriptor atIndex:(NSInteger)index;
+- (void)removeSectionDescriptorAtIndex:(NSInteger)index;
+- (void)removeSectionDescriptorsAtIndexes:(NSIndexSet *)indexSet;
 
 @end
 
@@ -35,6 +40,7 @@ extern const NSString *ALSectionDescriptorPredicateKey;
 extern const NSString *ALSectionDescriptorCellClassNameKey;
 extern const NSString *ALSectionDescriptorIconSizeKey;
 extern const NSString *ALSectionDescriptorSuppressHiddenAppsKey;
+extern const NSString *ALSectionDescriptorVisibilityPredicateKey;
 
 extern const NSString *ALItemDescriptorTextKey;
 extern const NSString *ALItemDescriptorDetailTextKey;

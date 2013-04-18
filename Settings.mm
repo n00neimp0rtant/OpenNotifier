@@ -82,7 +82,7 @@ static NSMutableArray* statusIcons;
 	[icon drawInRect:CGRectMake(left, top, width, height)];
 	icon = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
-	
+		
 	[cachedIcons setObject:icon forKey:name];
 
 	return icon;
@@ -91,9 +91,9 @@ static NSMutableArray* statusIcons;
 -(id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString*)identifier specifier:(PSSpecifier*)specifier;
 {	
 	if (!(self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier specifier:specifier])) return nil;
-	NSString* name = specifier.identifier;
-	[self setIcon:[self getIconNamed:name]];
-	
+
+	NSString* name = specifier.identifier;	
+
 	ONApplication* app = [preferences getApplication:[specifier propertyForKey:ONAppIdentifierKey]];
 	
 	bool enabled = app && [app.icons.allKeys containsObject:name];
@@ -173,8 +173,35 @@ static NSMutableArray* statusIcons;
 {
 	NSNumber *iconSize = [NSNumber numberWithUnsignedInteger:ALApplicationIconSizeSmall];
 
+	NSString* excludeList = @ 
+	"and not displayName in {"
+		"'DataActivation', "
+		"'DemoApp', "
+		"'DDActionsService', "
+		"'FacebookAccountMigrationDialog', "
+		"'FieldTest', "
+		"'iAd', "
+		"'iAdOptOut', "
+		"'iOS Diagnostics', "
+		"'iPodOut', "
+		"'kbd', "
+		"'MailCompositionService', "
+		"'MessagesViewService', "
+		"'quicklookd', "
+		"'Setup', "
+		"'ShoeboxUIService', "
+		"'SocialUIService', "
+		"'TrustMe', "
+		"'WebSheet', "
+		"'WebViewService'"
+	"} "	
+	"and not bundleIdentifier in {"
+		"'com.apple.ios.StoreKitUIService', "
+		"'com.apple.gamecenter.GameCenterUIService'"
+	"} ";
+	
 	NSString* filter = (searchText && searchText.length > 0) 
-					 ? [NSString stringWithFormat:@"not displayName in {'Setup'} and displayName beginsWith[cd] '%@'", searchText]
+					 ? [NSString stringWithFormat:@"displayName beginsWith[cd] '%@' %@", searchText, excludeList]
 					 : nil;
 					 	
 	if (filter)
@@ -196,28 +223,24 @@ static NSMutableArray* statusIcons;
 				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
 				iconSize, ALSectionDescriptorIconSizeKey,
 				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,
-				
-				@"containerPath = '/Applications' "
-				"and bundleIdentifier matches 'com.apple.*' "
-				"and not displayName in {'Setup'} "
-				, ALSectionDescriptorPredicateKey
+				[NSString stringWithFormat:@"containerPath = '/Applications' and bundleIdentifier matches 'com.apple.*' %@", excludeList],
+				ALSectionDescriptorPredicateKey
 			, nil],
 			[NSDictionary dictionaryWithObjectsAndKeys:
 				@"Cydia Applications", ALSectionDescriptorTitleKey,
 				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
 				iconSize, ALSectionDescriptorIconSizeKey,
-				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,
-				
-				@"containerPath = '/Applications' "
-				"and not bundleIdentifier matches 'com.apple.*' "
-				, ALSectionDescriptorPredicateKey
+				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,				
+				[NSString stringWithFormat:@"containerPath = '/Applications' and not bundleIdentifier matches 'com.apple.*' %@", excludeList],
+				ALSectionDescriptorPredicateKey
 			, nil],
 			[NSDictionary dictionaryWithObjectsAndKeys:
 				@"User Applications", ALSectionDescriptorTitleKey,
 				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
 				iconSize, ALSectionDescriptorIconSizeKey,
 				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,
-				@"containerPath != '/Applications'", ALSectionDescriptorPredicateKey
+				[NSString stringWithFormat:@"containerPath contains[cd] 'var/mobile/Applications' %@", excludeList],
+				ALSectionDescriptorPredicateKey
 			, nil]
 		, nil];		
 	}	
@@ -433,7 +456,6 @@ static NSMutableArray* statusIcons;
 			detail:[OpenNotifierIconSettingsController class] cell:PSLinkListCell edit:nil];
 					
 		[specifier setProperty:name forKey:PSIDKey];
-		
 		[specifier setProperty:[ONIconCell class] forKey:PSCellClassKey];
 		[specifier setProperty:_identifier forKey:ONAppIdentifierKey];
 	
@@ -443,7 +465,16 @@ static NSMutableArray* statusIcons;
 	return _specifiers;
 }
 
+-(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	/* iOS 6 no longer supports setIcon on PSTableCell so logic was moved here to fix it */
+	ONIconCell* cell = (ONIconCell*)[super tableView:tableView cellForRowAtIndexPath:indexPath];
+	cell.imageView.image = [cell getIconNamed:cell.specifier.identifier];
+	return cell;
+}
+
 #pragma mark #endregion
+
 
 @end
 #pragma mark #endregion

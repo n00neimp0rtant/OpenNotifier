@@ -3,6 +3,7 @@
 #import <LibStatusBar/LSStatusBarItem.h>
 #import <notify.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBAwayController.h>
 #import <SpringBoard/SBMediaController.h>
 #import <SpringBoard/SBUserAgent.h>
 
@@ -166,11 +167,14 @@ static void IconSettingsChanged()
 	
 	AddObserver((CFStringRef)IconSettingsChangedNotification, IconSettingsChanged);
 	AddObserver((CFStringRef)SilentModeChangedNotification, SilentModeSettingsChanged);
-				
+									
 	#ifdef DEBUGPREFS
 	dispatch_queue_t queue = dispatch_get_main_queue();
 	dispatch_async(queue, 
 	^{
+		SBAwayController* c = [%c(SBAwayController) sharedAwayController];
+		[c attemptUnlock];
+		[c unlockWithSound:false];
 		[[%c(SBUserAgent) sharedUserAgent] openURL:[NSURL URLWithString:@"prefs:root=OpenNotifier"] allowUnlock:true animated:true];
 		dispatch_release(queue);	
 	});

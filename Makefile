@@ -3,6 +3,7 @@
 DEBUG = 1
 DEBUGFLAG = -ggdb
 GO_EASY_ON_ME = 1
+ARCHS = armv7
 TARGET = iphone:latest:3.2
 THEOS_BUILD_DIR = build
 ADDITIONAL_CFLAGS = -Iinclude

@@ -12,7 +12,6 @@ typedef NSUInteger ALApplicationIconSize;
 
 @interface ALApplicationList : NSObject {
 @private
-	CPDistributedMessagingCenter *messagingCenter;
 	NSMutableDictionary *cachedIcons;
 	OSSpinLock spinLock;
 }
@@ -20,6 +19,9 @@ typedef NSUInteger ALApplicationIconSize;
 
 @property (nonatomic, readonly) NSDictionary *applications;
 - (NSDictionary *)applicationsFilteredUsingPredicate:(NSPredicate *)predicate;
+
+- (id)valueForKeyPath:(NSString *)keyPath forDisplayIdentifier:(NSString *)displayIdentifier;
+- (id)valueForKey:(NSString *)keyPath forDisplayIdentifier:(NSString *)displayIdentifier;
 
 - (CGImageRef)copyIconOfSize:(ALApplicationIconSize)iconSize forDisplayIdentifier:(NSString *)displayIdentifier;
 - (UIImage *)iconOfSize:(ALApplicationIconSize)iconSize forDisplayIdentifier:(NSString *)displayIdentifier;
