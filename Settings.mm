@@ -4,14 +4,15 @@
 #import <UIKit/UISearchBar2.h>
 
 #pragma mark #region [ Preferences Keys ]
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
+// #if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
 extern NSString* PSCellClassKey; // cellClass
 extern NSString* PSIDKey; // id
 extern NSString* PSIsRadioGroupKey; // isRadioGroup
 extern NSString* PSRadioGroupCheckedSpecifierKey; // radioGroupCheckedSpecifier
 extern NSString* PSDefaultValueKey; // default
 extern NSString* PSValueKey; // value
-#endif
+extern NSString* PSKeyNameKey; // value
+// #endif
 
 NSString* const ONAlignmentKey = @"alignment";
 
@@ -110,7 +111,7 @@ static NSMutableArray* statusIcons;
 		   }
 	   }
 		
-		self.detailTextLabel.text = details;
+		((UITableViewCell *)self).detailTextLabel.text = details;
 	}
 	return self;
 }
@@ -277,7 +278,7 @@ static NSMutableArray* statusIcons;
 
 -(void)viewDidLoad
 {
-	self.navigationItem.title = @"Applications";
+	((UIViewController *)self).title = @"Applications";
 	
 	UIEdgeInsets insets = UIEdgeInsetsMake(44.0f, 0, 0, 0);
 	_tableView.contentInset = insets;
@@ -469,8 +470,8 @@ static NSMutableArray* statusIcons;
 {
 	/* iOS 6 no longer supports setIcon on PSTableCell so logic was moved here to fix it */
 	ONIconCell* cell = (ONIconCell*)[super tableView:tableView cellForRowAtIndexPath:indexPath];
-	cell.imageView.image = [cell getIconNamed:cell.specifier.identifier];
-	return cell;
+	((UITableViewCell *)cell).imageView.image = [cell getIconNamed:((PSTableCell *)cell).specifier.identifier];
+	return (UITableViewCell *)cell;
 }
 
 #pragma mark #endregion
@@ -585,7 +586,9 @@ static NSMutableArray* statusIcons;
 {
 	[super tableView:tableView didSelectRowAtIndexPath:indexPath];
 	
-	PSSpecifier* specifier = [self specifierAtIndex:[self indexForIndexPath:indexPath]];
+	PSListController *cell = (PSListController *)self;
+	NSUInteger i = (NSUInteger)[cell indexForIndexPath:indexPath];
+	PSSpecifier* specifier = [self specifierAtIndex:i];
 	if (specifier && [[specifier propertyForKey:PSKeyNameKey] isEqualToString:ONIconAlignmentKey]) 
 	{
 		[self setPreferenceValue:[specifier propertyForKey:PSValueKey] specifier:[self specifierForID:ONIconAlignmentKey]];

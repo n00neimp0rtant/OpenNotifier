@@ -2,10 +2,10 @@
 #import "Preferences.h"
 #import <LibStatusBar/LSStatusBarItem.h>
 #import <notify.h>
-#import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBAwayController.h>
-#import <SpringBoard/SBMediaController.h>
-#import <SpringBoard/SBUserAgent.h>
+#import <SpringBoard7/SBMediaController.h>
+#import <SpringBoard7/SBUserAgent.h>
 
 #pragma mark #region [ Private Variables ]
 static ONPreferences* preferences;
@@ -189,18 +189,18 @@ static void IconSettingsChanged()
 %end
 #pragma mark #endregion
 
-#pragma mark #region [ SBApplicationIcon ]
-%hook SBApplicationIcon
+#pragma mark #region [ SBApplication ]
+%hook SBApplication
 
 -(void)setBadge:(id)badge
 {
 	%orig;
 
-	//Log("identifier = %@ badge = %@", self.leafIdentifier, badge);
+//	NSLog(@"SBApplication setBadge - identifier = %@ - %@, badge = %@", self.bundleIdentifier, self.displayIdentifier, badge);
 	
-	bool showBadge = !(badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);	
-	[trackedBadges setObject:NSBool(showBadge) forKey:self.leafIdentifier];	
-	if (preferences.enabled) ProcessApplicationIcon(self.leafIdentifier);
+	bool showBadge = !(badge == NULL || badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);
+	[trackedBadges setObject:NSBool(showBadge) forKey:self.bundleIdentifier];
+	if (preferences.enabled) ProcessApplicationIcon(self.bundleIdentifier);
 }
 %end
 #pragma mark #endregion
