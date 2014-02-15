@@ -180,14 +180,17 @@ static void IconSettingsChanged()
 	});
 	#endif
 }
+%end
+#pragma mark #endregion
 
--(void)ringerChanged:(int)changed
+#pragma mark #region [ SBMediaController ]
+%hook SBMediaController
+-(void)setRingerMuted:(bool)change
 {
 	%orig;
 	UpdateSilentIcon();
 }
 %end
-#pragma mark #endregion
 
 #pragma mark #region [ SBApplication ]
 %hook SBApplication
