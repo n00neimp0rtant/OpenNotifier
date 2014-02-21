@@ -301,5 +301,27 @@ static ONPreferences* _instance;
 	[_data setObject:NSBool(value) forKey:ONSilentIconLeftKey];
 	[self saveWithNotification:SilentModeChangedNotification];
 }
+
+-(bool)vibrateModeEnabled
+{
+	return [_data.allKeys containsObject:ONVibrateModeEnabledKey] ? [[_data objectForKey:ONVibrateModeEnabledKey] boolValue] : true;
+}
+
+-(void)setVibrateModeEnabled:(bool)value
+{
+	[_data setObject:NSBool(value) forKey:ONVibrateModeEnabledKey];
+	[self saveWithNotification:VibrateModeChangedNotification];
+}
+
+-(bool)vibrateIconOnLeft
+{
+	return [_data.allKeys containsObject:ONVibrateIconLeftKey] ? [[_data objectForKey:ONVibrateIconLeftKey] boolValue]: false;
+}
+
+-(void)setVibrateIconOnLeft:(bool)value
+{
+	[_data setObject:NSBool(value) forKey:ONVibrateIconLeftKey];
+	[self saveWithNotification:VibrateModeChangedNotification];
+}
 @end
 #pragma mark #endregion

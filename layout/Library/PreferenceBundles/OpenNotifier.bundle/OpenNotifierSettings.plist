@@ -12,7 +12,7 @@
 			<key>label</key>
 			<string>General</string>
 			<key>footerText</key>
-			<string>Show notification icons on the left side of the status bar.</string>
+			<string>Show notification icons on the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -38,7 +38,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Show silent mode icon on the left side of the status bar.</string>
+			<string>Show silent mode icon on the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -55,6 +55,32 @@
 			<string>PSSwitchCell</string>
 			<key>id</key>
 			<string>ONSilentIconLeft</string>
+			<key>label</key>
+			<string>↳ Align Left</string>
+			<key>default</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Show vibrate mode icon on the status bar.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONVibrateModeIcon</string>
+			<key>label</key>
+			<string>Vibrate Mode Icon</string>
+			<key>default</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONVibrateIconLeft</string>
 			<key>label</key>
 			<string>↳ Align Left</string>
 			<key>default</key>

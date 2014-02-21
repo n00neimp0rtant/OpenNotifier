@@ -35,6 +35,8 @@ typedef NSUInteger ONIconAlignment;
 @property(assign) bool iconsOnLeft;
 @property(assign) bool silentModeEnabled;
 @property(assign) bool silentIconOnLeft;
+@property(assign) bool vibrateModeEnabled;
+@property(assign) bool vibrateIconOnLeft;
 
 +(id)sharedInstance;
 

@@ -6,6 +6,7 @@
 #import <SpringBoard/SBAwayController.h>
 #import <SpringBoard7/SBMediaController.h>
 #import <SpringBoard7/SBUserAgent.h>
+#import <SpringBoard7/SBSoundPreferences.h>
 
 #pragma mark #region [ Private Variables ]
 static ONPreferences* preferences;
@@ -13,6 +14,7 @@ static NSMutableDictionary* statusBarItems = [[NSMutableDictionary alloc] init];
 static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] init];
 static NSMutableDictionary* trackedBadges = [[NSMutableDictionary alloc] init];
 static LSStatusBarItem* silentIconItem;
+static LSStatusBarItem* vibrateIconItem;
 #pragma mark #endregion
 
 #pragma mark #region [ Global Functions ]
@@ -120,6 +122,32 @@ static void SilentModeSettingsChanged()
 	UpdateSilentIcon();
 }
 
+static void UpdateVibrateIcon()
+{
+	if (vibrateIconItem)
+	{
+		[vibrateIconItem release];
+		vibrateIconItem = nil;
+	}
+
+	if (preferences.vibrateModeEnabled)
+	{
+        bool vibrate = false;
+        NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
+        if (dict) {
+            vibrate = ([[dict valueForKey:@"ring-vibrate"] boolValue] || [[dict valueForKey:@"silent-vibrate"] boolValue]);
+        }
+
+		if (vibrate) vibrateIconItem = [CreateStatusBarItem(ONVibrateKey, ONVibrateKey, preferences.vibrateIconOnLeft) retain];
+	}
+}
+
+static void VibrateModeSettingsChanged()
+{
+	ReloadSettings();
+	UpdateVibrateIcon();
+}
+
 static void IconSettingsChanged()
 {
 	ReloadSettings();
@@ -164,9 +192,15 @@ static void IconSettingsChanged()
 {
 	%orig;
 	UpdateSilentIcon();	
+	UpdateVibrateIcon();
 	
 	AddObserver((CFStringRef)IconSettingsChangedNotification, IconSettingsChanged);
 	AddObserver((CFStringRef)SilentModeChangedNotification, SilentModeSettingsChanged);
+	AddObserver((CFStringRef)VibrateModeChangedNotification, VibrateModeSettingsChanged);
+
+    CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
+    CFNotificationCenterAddObserver(center, NULL, (CFNotificationCallback)&UpdateVibrateIcon, CFSTR("com.apple.springboard.ring-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(center, NULL, (CFNotificationCallback)&UpdateVibrateIcon, CFSTR("com.apple.springboard.silent-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 									
 	#ifdef DEBUGPREFS
 	dispatch_queue_t queue = dispatch_get_main_queue();
@@ -191,6 +225,17 @@ static void IconSettingsChanged()
 	UpdateSilentIcon();
 }
 %end
+#pragma mark #endregion
+
+#pragma mark #region [ SBSoundPreferences ]
+%hook SBSoundPreferences
+-(void)userDefaultsDidChanged:(id)arg1
+{
+	%orig;
+	UpdateVibrateIcon();
+}
+%end
+#pragma mark #endregion
 
 #pragma mark #region [ SBApplication ]
 %hook SBApplication
