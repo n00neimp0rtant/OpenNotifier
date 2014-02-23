@@ -104,11 +104,11 @@
 			<key>label</key>
 			<string>Pseudo-Badges</string>
 		</dict>-->
-<!--		<dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>For support or feature suggestions, please mention @OpenNotifier on Twitter (or email n00neimp0rtant@me.com).</string>
+			<string></string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -117,7 +117,7 @@
 			<string>OpenNotifierAppsController</string>
 			<key>label</key>
 			<string>Apps</string>
-		</dict>-->
+		</dict>
 	</array>
 </dict>
 </plist>
