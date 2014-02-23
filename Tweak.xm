@@ -3,6 +3,9 @@
 #import <LibStatusBar/LSStatusBarItem.h>
 #import <notify.h>
 #import <SpringBoard/SBApplication.h>
+#import <SpringBoard/SBApplicationController.h>
+#import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBIcon.h>
 #import <SpringBoard/SBAwayController.h>
 #import <SpringBoard7/SBMediaController.h>
 #import <SpringBoard7/SBUserAgent.h>
@@ -15,6 +18,7 @@ static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] in
 static NSMutableDictionary* trackedBadges = [[NSMutableDictionary alloc] init];
 static LSStatusBarItem* silentIconItem;
 static LSStatusBarItem* vibrateIconItem;
+static id mailBadge = nil;
 #pragma mark #endregion
 
 #pragma mark #region [ Global Functions ]
@@ -148,6 +152,25 @@ static void VibrateModeSettingsChanged()
 	UpdateVibrateIcon();
 }
 
+static void HideMailSettingsChanged()
+{
+    ReloadSettings();
+
+    SBApplicationController* sbac = %c(SBApplicationController);
+    if (sbac != NULL)
+    {
+        SBApplication *mailApp = [[sbac sharedInstance] applicationWithDisplayIdentifier:@"com.apple.mobilemail"];
+        if (mailApp != NULL)
+        {
+            SBApplicationIcon *mailAppIcon = [[%c(SBApplicationIcon) alloc] initWithApplication:mailApp];
+            if (mailAppIcon != NULL)
+            {
+                [mailAppIcon setBadge:mailBadge];
+            }
+        }
+    }
+}
+
 static void IconSettingsChanged()
 {
 	ReloadSettings();
@@ -197,6 +220,7 @@ static void IconSettingsChanged()
 	AddObserver((CFStringRef)IconSettingsChangedNotification, IconSettingsChanged);
 	AddObserver((CFStringRef)SilentModeChangedNotification, SilentModeSettingsChanged);
 	AddObserver((CFStringRef)VibrateModeChangedNotification, VibrateModeSettingsChanged);
+	AddObserver((CFStringRef)HideMailChangedNotification, HideMailSettingsChanged);
 
     CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(center, NULL, (CFNotificationCallback)&UpdateVibrateIcon, CFSTR("com.apple.springboard.ring-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
@@ -242,11 +266,19 @@ static void IconSettingsChanged()
 
 -(void)setBadge:(id)badge
 {
-	%orig;
+    bool showBadge = !(badge == NULL || badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);
+    if ([self.bundleIdentifier isEqualToString:@"com.apple.mobilemail"]) {
+        mailBadge = badge;
+        if (preferences.enabled && preferences.hideMail)
+        {
+            badge = nil;
+        }
+    }
+	%orig(badge);
+//    %orig;
 
 //	NSLog(@"SBApplication setBadge - identifier = %@ - %@, badge = %@", self.bundleIdentifier, self.displayIdentifier, badge);
 	
-	bool showBadge = !(badge == NULL || badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);
 	[trackedBadges setObject:NSBool(showBadge) forKey:self.bundleIdentifier];
 	if (preferences.enabled) ProcessApplicationIcon(self.bundleIdentifier);
 }

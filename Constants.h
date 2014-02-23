@@ -15,6 +15,7 @@ NSString* const ONSilentModeEnabledKey = @"ONSilentModeIcon";
 NSString* const ONVibrateKey = @"Vibrate";
 NSString* const ONVibrateIconLeftKey = @"ONVibrateIconLeft";
 NSString* const ONVibrateModeEnabledKey = @"ONVibrateModeIcon";
+NSString* const ONHideMailKey = @"ONHideMail";
 
 NSString* const IconRegexPattern = @"(?:Silver|Black)_ON_(.*?)(?:@.*|)(?:~.*|).png";
 NSString* const SilverIconRegexPattern = @"Silver_ON_(.*?)(?:@.*|)(?:~.*|).png";
@@ -22,3 +23,4 @@ NSString* const SilverIconRegexPattern = @"Silver_ON_(.*?)(?:@.*|)(?:~.*|).png";
 NSString* const IconSettingsChangedNotification = @"opennotifier.iconSettingsChanged";
 NSString* const SilentModeChangedNotification = @"opennotifier.silentModeChanged";
 NSString* const VibrateModeChangedNotification = @"opennotifier.vibrateModeChanged";
+NSString* const HideMailChangedNotification = @"opennotifier.hideMailChanged";

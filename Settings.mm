@@ -147,6 +147,7 @@ static NSMutableArray* statusIcons;
 		
 	if ([key isEqualToString:ONEnabledKey]) return NSBool(preferences.enabled);
 	if ([key isEqualToString:ONIconsLeftKey]) return NSBool(preferences.iconsOnLeft);
+    if ([key isEqualToString:ONHideMailKey]) return NSBool(preferences.hideMail);
 	if ([key isEqualToString:ONSilentModeEnabledKey]) return NSBool(preferences.silentModeEnabled);
 	if ([key isEqualToString:ONSilentIconLeftKey]) return NSBool(preferences.silentIconOnLeft);
 	if ([key isEqualToString:ONVibrateModeEnabledKey]) return NSBool(preferences.vibrateModeEnabled);
@@ -161,6 +162,7 @@ static NSMutableArray* statusIcons;
 	
 	if ([key isEqualToString:ONEnabledKey]) preferences.enabled = [value boolValue];
 	if ([key isEqualToString:ONIconsLeftKey]) preferences.iconsOnLeft = [value boolValue];
+    if ([key isEqualToString:ONHideMailKey]) preferences.hideMail = [value boolValue];
 	if ([key isEqualToString:ONSilentModeEnabledKey]) preferences.silentModeEnabled = [value boolValue];
 	if ([key isEqualToString:ONSilentIconLeftKey]) preferences.silentIconOnLeft = [value boolValue];
 	if ([key isEqualToString:ONVibrateModeEnabledKey]) preferences.vibrateModeEnabled = [value boolValue];

@@ -243,6 +243,18 @@ static ONPreferences* _instance;
 	[self save];
 }
 
+-(bool)hideMail
+{
+	return [_data.allKeys containsObject:ONHideMailKey] ? [[_data objectForKey:ONHideMailKey] boolValue] : false;
+}
+
+-(void)setHideMail:(bool)value
+{
+	[_data setObject:NSBool(value) forKey:ONHideMailKey];
+//    [self save];
+	[self saveWithNotification:HideMailChangedNotification];
+}
+
 -(void)reload
 {
 	if (_applications) { [_applications release]; _applications = nil; }
@@ -286,7 +298,7 @@ static ONPreferences* _instance;
 }
 
 -(void)setSilentModeEnabled:(bool)value 
-{ 
+{
 	[_data setObject:NSBool(value) forKey:ONSilentModeEnabledKey];
 	[self saveWithNotification:SilentModeChangedNotification];
 }

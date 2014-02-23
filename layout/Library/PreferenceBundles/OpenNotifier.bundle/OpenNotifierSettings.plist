@@ -36,9 +36,19 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONHideMail</string>
+			<key>label</key>
+			<string>Hide Mail Icon Badge</string>
+			<key>default</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Show silent mode icon on the status bar.</string>
+			<string>Show silent and/or vibrate mode icons on the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -56,15 +66,9 @@
 			<key>id</key>
 			<string>ONSilentIconLeft</string>
 			<key>label</key>
-			<string>↳ Align Left</string>
+			<string>Silent ↳ Align Left</string>
 			<key>default</key>
 			<false/>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>footerText</key>
-			<string>Show vibrate mode icon on the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -82,7 +86,7 @@
 			<key>id</key>
 			<string>ONVibrateIconLeft</string>
 			<key>label</key>
-			<string>↳ Align Left</string>
+			<string>Vibrate ↳ Align Left</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -100,7 +104,7 @@
 			<key>label</key>
 			<string>Pseudo-Badges</string>
 		</dict>-->
-		<dict>
+<!--		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
@@ -113,7 +117,7 @@
 			<string>OpenNotifierAppsController</string>
 			<key>label</key>
 			<string>Apps</string>
-		</dict>
+		</dict>-->
 	</array>
 </dict>
 </plist>
