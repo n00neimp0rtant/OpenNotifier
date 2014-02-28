@@ -450,10 +450,26 @@ static NSMutableArray* statusIcons;
 			if (![statusIcons containsObject:name]) [statusIcons addObject:name];
 		}
 		
-		[statusIcons sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];	
+//		[statusIcons sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];	
 	}
 	
 	_application = [preferences.applications objectForKey:_identifier];
+
+    if (statusIcons)
+    {
+        [statusIcons sortUsingComparator: ^(NSString* a, NSString* b) {
+            bool e1 = _application && [_application.icons.allKeys containsObject:a];
+            bool e2 = _application && [_application.icons.allKeys containsObject:b];
+            if (e1 && e2) {
+                return [a caseInsensitiveCompare:b];
+            } else if (e1) {
+                return (NSComparisonResult)NSOrderedAscending;
+            } else if (e2) {
+                return (NSComparisonResult)NSOrderedDescending;
+            }
+            return [a caseInsensitiveCompare:b];
+        }];
+    }
 
 	[pool drain];
 	return self;

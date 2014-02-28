@@ -183,6 +183,21 @@ static void IconSettingsChanged()
 		ProcessApplicationIcon(key);
 	}];		
 }
+
+static void InitBadges()
+{
+    if ([%c(SBIconViewMap) respondsToSelector:@selector(homescreenMap)]) {
+        for (NSString *identifier in [[[%c(SBIconViewMap) homescreenMap] iconModel] visibleIconIdentifiers]) {
+            ONApplication* app;
+            if (!(app = [preferences getApplication:identifier])) continue;
+            SBIcon *icon = (SBIcon *)[[[%c(SBIconViewMap) homescreenMap] iconModel] applicationIconForDisplayIdentifier:identifier];
+            if (icon && [icon badgeNumberOrString]) {
+                [trackedBadges setObject:NSBool(YES) forKey:identifier];
+                ProcessApplicationIcon(identifier);
+            }
+        }
+    }
+}
 #pragma mark #endregion
 
 #pragma mark #region [ SpringBoard ]
@@ -237,6 +252,8 @@ static void IconSettingsChanged()
 		dispatch_release(queue);	
 	});
 	#endif
+
+    InitBadges();
 }
 %end
 #pragma mark #endregion
