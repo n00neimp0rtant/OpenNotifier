@@ -7,7 +7,7 @@ ADDITIONAL_LDFLAGS = -L./lib
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = OpenNotifier
+TWEAK_NAME = OpenNotifier 2
 OpenNotifier_FILES = Tweak.xm Preferences.mm
 OpenNotifier_LIBRARIES = statusbar
 
