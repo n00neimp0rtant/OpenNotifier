@@ -12,7 +12,7 @@
 			<key>label</key>
 			<string>General</string>
 			<key>footerText</key>
-			<string>Show notification icons on the left side of the status bar.</string>
+			<string>Show notification icons on the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -36,9 +36,19 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONHideMail</string>
+			<key>label</key>
+			<string>Hide Mail Icon Badge</string>
+			<key>default</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Show silent mode icon on the left side of the status bar.</string>
+			<string>Show silent and/or vibrate mode icons on the status bar.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -56,7 +66,27 @@
 			<key>id</key>
 			<string>ONSilentIconLeft</string>
 			<key>label</key>
-			<string>↳ Align Left</string>
+			<string>Silent ↳ Align Left</string>
+			<key>default</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONVibrateModeIcon</string>
+			<key>label</key>
+			<string>Vibrate Mode Icon</string>
+			<key>default</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>ONVibrateIconLeft</string>
+			<key>label</key>
+			<string>Vibrate ↳ Align Left</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -78,7 +108,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>For support or feature suggestions, please mention @OpenNotifier on Twitter (or email n00neimp0rtant@me.com).</string>
+			<string></string>
 		</dict>
 		<dict>
 			<key>cell</key>

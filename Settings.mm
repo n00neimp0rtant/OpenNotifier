@@ -4,14 +4,15 @@
 #import <UIKit/UISearchBar2.h>
 
 #pragma mark #region [ Preferences Keys ]
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
+// #if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
 extern NSString* PSCellClassKey; // cellClass
 extern NSString* PSIDKey; // id
 extern NSString* PSIsRadioGroupKey; // isRadioGroup
 extern NSString* PSRadioGroupCheckedSpecifierKey; // radioGroupCheckedSpecifier
 extern NSString* PSDefaultValueKey; // default
 extern NSString* PSValueKey; // value
-#endif
+extern NSString* PSKeyNameKey; // value
+// #endif
 
 NSString* const ONAlignmentKey = @"alignment";
 
@@ -110,7 +111,7 @@ static NSMutableArray* statusIcons;
 		   }
 	   }
 		
-		self.detailTextLabel.text = details;
+		((UITableViewCell *)self).detailTextLabel.text = details;
 	}
 	return self;
 }
@@ -146,8 +147,11 @@ static NSMutableArray* statusIcons;
 		
 	if ([key isEqualToString:ONEnabledKey]) return NSBool(preferences.enabled);
 	if ([key isEqualToString:ONIconsLeftKey]) return NSBool(preferences.iconsOnLeft);
+        if ([key isEqualToString:ONHideMailKey]) return NSBool(preferences.hideMail);
 	if ([key isEqualToString:ONSilentModeEnabledKey]) return NSBool(preferences.silentModeEnabled);
 	if ([key isEqualToString:ONSilentIconLeftKey]) return NSBool(preferences.silentIconOnLeft);
+	if ([key isEqualToString:ONVibrateModeEnabledKey]) return NSBool(preferences.vibrateModeEnabled);
+	if ([key isEqualToString:ONVibrateIconLeftKey]) return NSBool(preferences.vibrateIconOnLeft);
 	
 	return nil;
 }
@@ -158,8 +162,11 @@ static NSMutableArray* statusIcons;
 	
 	if ([key isEqualToString:ONEnabledKey]) preferences.enabled = [value boolValue];
 	if ([key isEqualToString:ONIconsLeftKey]) preferences.iconsOnLeft = [value boolValue];
+        if ([key isEqualToString:ONHideMailKey]) preferences.hideMail = [value boolValue];
 	if ([key isEqualToString:ONSilentModeEnabledKey]) preferences.silentModeEnabled = [value boolValue];
 	if ([key isEqualToString:ONSilentIconLeftKey]) preferences.silentIconOnLeft = [value boolValue];
+	if ([key isEqualToString:ONVibrateModeEnabledKey]) preferences.vibrateModeEnabled = [value boolValue];
+	if ([key isEqualToString:ONVibrateIconLeftKey]) preferences.vibrateIconOnLeft = [value boolValue];
 }
 
 @end
@@ -200,6 +207,16 @@ static NSMutableArray* statusIcons;
 		"'com.apple.gamecenter.GameCenterUIService'"
 	"} ";
 	
+	NSString* enabledList = @"";
+	for (NSString* identifer in preferences.applications.allKeys)
+	{
+		ONApplication* app = [preferences getApplication:identifer];
+		if (app && [[app.icons allKeys] count])
+		{
+			enabledList = [enabledList stringByAppendingString:[NSString stringWithFormat:@"'%@',", identifer]];
+		}
+	}
+    enabledList = [enabledList stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@","]];
 	NSString* filter = (searchText && searchText.length > 0) 
 					 ? [NSString stringWithFormat:@"displayName beginsWith[cd] '%@' %@", searchText, excludeList]
 					 : nil;
@@ -219,11 +236,19 @@ static NSMutableArray* statusIcons;
 	{
 		_dataSource.sectionDescriptors = [NSArray arrayWithObjects:
 			[NSDictionary dictionaryWithObjectsAndKeys:
+				@"Enabled Applications", ALSectionDescriptorTitleKey,
+				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
+				iconSize, ALSectionDescriptorIconSizeKey,
+				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,
+				[NSString stringWithFormat:@"bundleIdentifier in {%@}", enabledList],
+				ALSectionDescriptorPredicateKey
+			, nil],
+			[NSDictionary dictionaryWithObjectsAndKeys:
 				@"System Applications", ALSectionDescriptorTitleKey,
 				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
 				iconSize, ALSectionDescriptorIconSizeKey,
 				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,
-				[NSString stringWithFormat:@"containerPath = '/Applications' and bundleIdentifier matches 'com.apple.*' %@", excludeList],
+				[NSString stringWithFormat:@"containerPath = '/Applications' and bundleIdentifier matches 'com.apple.*' %@ and not bundleIdentifier in {%@}", excludeList, enabledList],
 				ALSectionDescriptorPredicateKey
 			, nil],
 			[NSDictionary dictionaryWithObjectsAndKeys:
@@ -231,7 +256,7 @@ static NSMutableArray* statusIcons;
 				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
 				iconSize, ALSectionDescriptorIconSizeKey,
 				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,				
-				[NSString stringWithFormat:@"containerPath = '/Applications' and not bundleIdentifier matches 'com.apple.*' %@", excludeList],
+				[NSString stringWithFormat:@"containerPath = '/Applications' and not bundleIdentifier matches 'com.apple.*' %@ and not bundleIdentifier in {%@}", excludeList, enabledList],
 				ALSectionDescriptorPredicateKey
 			, nil],
 			[NSDictionary dictionaryWithObjectsAndKeys:
@@ -239,7 +264,7 @@ static NSMutableArray* statusIcons;
 				@"ALLinkCell", ALSectionDescriptorCellClassNameKey,
 				iconSize, ALSectionDescriptorIconSizeKey,
 				(id)kCFBooleanTrue, ALSectionDescriptorSuppressHiddenAppsKey,
-				[NSString stringWithFormat:@"containerPath contains[cd] 'var/mobile/Applications' %@", excludeList],
+				[NSString stringWithFormat:@"containerPath contains[cd] 'var/mobile/Applications' %@ and not bundleIdentifier in {%@}", excludeList, enabledList],
 				ALSectionDescriptorPredicateKey
 			, nil]
 		, nil];		
@@ -277,7 +302,7 @@ static NSMutableArray* statusIcons;
 
 -(void)viewDidLoad
 {
-	self.navigationItem.title = @"Applications";
+	((UIViewController *)self).title = @"Applications";
 	
 	UIEdgeInsets insets = UIEdgeInsetsMake(44.0f, 0, 0, 0);
 	_tableView.contentInset = insets;
@@ -315,7 +340,7 @@ static NSMutableArray* statusIcons;
 	[UIView setAnimationCurve:(UIViewAnimationCurve)[[userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] integerValue]];
 	CGRect keyboardFrame = CGRectZero;
 	[[userInfo valueForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardFrame];
-	UIEdgeInsets insets = UIEdgeInsetsMake(44.0f, 0, keyboardFrame.size.height, 0);
+	UIEdgeInsets insets = UIEdgeInsetsMake(110.0f, 0, keyboardFrame.size.height, 0);
 	_tableView.contentInset = insets;
 	insets.top = 0;
 	_tableView.scrollIndicatorInsets = insets;
@@ -328,7 +353,7 @@ static NSMutableArray* statusIcons;
 	NSDictionary* userInfo = notification.userInfo;
 	[UIView setAnimationDuration:[[userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
 	[UIView setAnimationCurve:(UIViewAnimationCurve)[[userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] integerValue]];
-    UIEdgeInsets insets = UIEdgeInsetsMake(44.0f, 0, 0, 0);
+    UIEdgeInsets insets = UIEdgeInsetsMake(110.0f, 0, 0, 0);
 	_tableView.contentInset = insets;
     insets.top = 0.0f;
     _tableView.scrollIndicatorInsets = insets;
@@ -358,13 +383,13 @@ static NSMutableArray* statusIcons;
 	_searchBar.text = nil;
 	[self updateDataSource:nil];	
 	[_searchBar resignFirstResponder];
-	_tableView.contentOffset = CGPointMake(0, 12.0f);
+	_tableView.contentOffset = CGPointMake(0, -44.0f);
 }
 
 -(void)searchBar:(UISearchBar*)searchBar textDidChange:(NSString*)searchText
 {
 	[self updateDataSource:searchText];
-	_tableView.contentOffset = CGPointMake(0, -44.0f);
+//	_tableView.contentOffset = CGPointMake(0, -44.0f);
 }
 
 #pragma mark #endregion [ UISearchBar ]
@@ -425,10 +450,26 @@ static NSMutableArray* statusIcons;
 			if (![statusIcons containsObject:name]) [statusIcons addObject:name];
 		}
 		
-		[statusIcons sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];	
+//		[statusIcons sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];	
 	}
 	
 	_application = [preferences.applications objectForKey:_identifier];
+
+    if (statusIcons)
+    {
+        [statusIcons sortUsingComparator: ^(NSString* a, NSString* b) {
+            bool e1 = _application && [_application.icons.allKeys containsObject:a];
+            bool e2 = _application && [_application.icons.allKeys containsObject:b];
+            if (e1 && e2) {
+                return [a caseInsensitiveCompare:b];
+            } else if (e1) {
+                return (NSComparisonResult)NSOrderedAscending;
+            } else if (e2) {
+                return (NSComparisonResult)NSOrderedDescending;
+            }
+            return [a caseInsensitiveCompare:b];
+        }];
+    }
 
 	[pool drain];
 	return self;
@@ -469,8 +510,8 @@ static NSMutableArray* statusIcons;
 {
 	/* iOS 6 no longer supports setIcon on PSTableCell so logic was moved here to fix it */
 	ONIconCell* cell = (ONIconCell*)[super tableView:tableView cellForRowAtIndexPath:indexPath];
-	cell.imageView.image = [cell getIconNamed:cell.specifier.identifier];
-	return cell;
+	((UITableViewCell *)cell).imageView.image = [cell getIconNamed:((PSTableCell *)cell).specifier.identifier];
+	return (UITableViewCell *)cell;
 }
 
 #pragma mark #endregion
@@ -585,7 +626,9 @@ static NSMutableArray* statusIcons;
 {
 	[super tableView:tableView didSelectRowAtIndexPath:indexPath];
 	
-	PSSpecifier* specifier = [self specifierAtIndex:[self indexForIndexPath:indexPath]];
+	PSListController *cell = (PSListController *)self;
+	NSUInteger i = (NSUInteger)[cell indexForIndexPath:indexPath];
+	PSSpecifier* specifier = [self specifierAtIndex:i];
 	if (specifier && [[specifier propertyForKey:PSKeyNameKey] isEqualToString:ONIconAlignmentKey]) 
 	{
 		[self setPreferenceValue:[specifier propertyForKey:PSValueKey] specifier:[self specifierForID:ONIconAlignmentKey]];

@@ -2,10 +2,14 @@
 #import "Preferences.h"
 #import <LibStatusBar/LSStatusBarItem.h>
 #import <notify.h>
+#import <SpringBoard/SBApplication.h>
+#import <SpringBoard/SBApplicationController.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBIcon.h>
 #import <SpringBoard/SBAwayController.h>
-#import <SpringBoard/SBMediaController.h>
-#import <SpringBoard/SBUserAgent.h>
+#import <SpringBoard7/SBMediaController.h>
+#import <SpringBoard7/SBUserAgent.h>
+#import <SpringBoard7/SBSoundPreferences.h>
 
 #pragma mark #region [ Private Variables ]
 static ONPreferences* preferences;
@@ -13,6 +17,8 @@ static NSMutableDictionary* statusBarItems = [[NSMutableDictionary alloc] init];
 static NSMutableDictionary* currentIconSetList = [[NSMutableDictionary alloc] init];
 static NSMutableDictionary* trackedBadges = [[NSMutableDictionary alloc] init];
 static LSStatusBarItem* silentIconItem;
+static LSStatusBarItem* vibrateIconItem;
+static id mailBadge = nil;
 #pragma mark #endregion
 
 #pragma mark #region [ Global Functions ]
@@ -120,6 +126,51 @@ static void SilentModeSettingsChanged()
 	UpdateSilentIcon();
 }
 
+static void UpdateVibrateIcon()
+{
+	if (vibrateIconItem)
+	{
+		[vibrateIconItem release];
+		vibrateIconItem = nil;
+	}
+
+	if (preferences.vibrateModeEnabled)
+	{
+        bool vibrate = false;
+        NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
+        if (dict) {
+            vibrate = ([[dict valueForKey:@"ring-vibrate"] boolValue] || [[dict valueForKey:@"silent-vibrate"] boolValue]);
+        }
+
+		if (vibrate) vibrateIconItem = [CreateStatusBarItem(ONVibrateKey, ONVibrateKey, preferences.vibrateIconOnLeft) retain];
+	}
+}
+
+static void VibrateModeSettingsChanged()
+{
+	ReloadSettings();
+	UpdateVibrateIcon();
+}
+
+static void HideMailSettingsChanged()
+{
+    ReloadSettings();
+
+    SBApplicationController* sbac = %c(SBApplicationController);
+    if (sbac != NULL)
+    {
+        SBApplication *mailApp = [[sbac sharedInstance] applicationWithDisplayIdentifier:@"com.apple.mobilemail"];
+        if (mailApp != NULL)
+        {
+            SBApplicationIcon *mailAppIcon = [[%c(SBApplicationIcon) alloc] initWithApplication:mailApp];
+            if (mailAppIcon != NULL)
+            {
+                [mailAppIcon setBadge:mailBadge];
+            }
+        }
+    }
+}
+
 static void IconSettingsChanged()
 {
 	ReloadSettings();
@@ -131,6 +182,21 @@ static void IconSettingsChanged()
 	[trackedBadges.allKeys enumerateObjectsUsingBlock: ^(id key, NSUInteger index, BOOL* stop){
 		ProcessApplicationIcon(key);
 	}];		
+}
+
+static void InitBadges()
+{
+    if ([%c(SBIconViewMap) respondsToSelector:@selector(homescreenMap)]) {
+        for (NSString *identifier in [[[%c(SBIconViewMap) homescreenMap] iconModel] visibleIconIdentifiers]) {
+            ONApplication* app;
+            if (!(app = [preferences getApplication:identifier])) continue;
+            SBIcon *icon = (SBIcon *)[[[%c(SBIconViewMap) homescreenMap] iconModel] applicationIconForDisplayIdentifier:identifier];
+            if (icon && [icon badgeNumberOrString]) {
+                [trackedBadges setObject:NSBool(YES) forKey:identifier];
+                ProcessApplicationIcon(identifier);
+            }
+        }
+    }
 }
 #pragma mark #endregion
 
@@ -164,9 +230,16 @@ static void IconSettingsChanged()
 {
 	%orig;
 	UpdateSilentIcon();	
+	UpdateVibrateIcon();
 	
 	AddObserver((CFStringRef)IconSettingsChangedNotification, IconSettingsChanged);
 	AddObserver((CFStringRef)SilentModeChangedNotification, SilentModeSettingsChanged);
+	AddObserver((CFStringRef)VibrateModeChangedNotification, VibrateModeSettingsChanged);
+	AddObserver((CFStringRef)HideMailChangedNotification, HideMailSettingsChanged);
+
+    CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
+    CFNotificationCenterAddObserver(center, NULL, (CFNotificationCallback)&UpdateVibrateIcon, CFSTR("com.apple.springboard.ring-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(center, NULL, (CFNotificationCallback)&UpdateVibrateIcon, CFSTR("com.apple.springboard.silent-vibrate.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 									
 	#ifdef DEBUGPREFS
 	dispatch_queue_t queue = dispatch_get_main_queue();
@@ -179,9 +252,15 @@ static void IconSettingsChanged()
 		dispatch_release(queue);	
 	});
 	#endif
-}
 
--(void)ringerChanged:(int)changed
+    InitBadges();
+}
+%end
+#pragma mark #endregion
+
+#pragma mark #region [ SBMediaController ]
+%hook SBMediaController
+-(void)setRingerMuted:(bool)change
 {
 	%orig;
 	UpdateSilentIcon();
@@ -189,18 +268,36 @@ static void IconSettingsChanged()
 %end
 #pragma mark #endregion
 
-#pragma mark #region [ SBApplicationIcon ]
-%hook SBApplicationIcon
+#pragma mark #region [ SBSoundPreferences ]
+%hook SBSoundPreferences
+-(void)userDefaultsDidChanged:(id)arg1
+{
+	%orig;
+	UpdateVibrateIcon();
+}
+%end
+#pragma mark #endregion
+
+#pragma mark #region [ SBApplication ]
+%hook SBApplication
 
 -(void)setBadge:(id)badge
 {
-	%orig;
+    bool showBadge = !(badge == NULL || badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);
+    if ([self.bundleIdentifier isEqualToString:@"com.apple.mobilemail"]) {
+        mailBadge = badge;
+        if (preferences.enabled && preferences.hideMail)
+        {
+            badge = nil;
+        }
+    }
+	%orig(badge);
+//    %orig;
 
-	//Log("identifier = %@ badge = %@", self.leafIdentifier, badge);
+//	NSLog(@"SBApplication setBadge - identifier = %@ - %@, badge = %@", self.bundleIdentifier, self.displayIdentifier, badge);
 	
-	bool showBadge = !(badge == nil || [badge isEqual:@""] || [badge isEqual:@"0"] || [badge isEqual:[NSNumber numberWithInt:0]]);	
-	[trackedBadges setObject:NSBool(showBadge) forKey:self.leafIdentifier];	
-	if (preferences.enabled) ProcessApplicationIcon(self.leafIdentifier);
+	[trackedBadges setObject:NSBool(showBadge) forKey:self.bundleIdentifier];
+	if (preferences.enabled) ProcessApplicationIcon(self.bundleIdentifier);
 }
 %end
 #pragma mark #endregion

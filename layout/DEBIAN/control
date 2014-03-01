@@ -1,9 +1,9 @@
 Package: com.n00neimp0rtant.opennotifier
 Name: OpenNotifier
-Depends: Firmware (>=3.2), MobileSubstrate, libStatusBar, PreferenceLoader (>= 2.0), AppList
 Version: 2.0~beta2
+Depends: firmware (>=7.0), mobilesubstrate, libstatusbar (>= 0.9.7.0), preferenceloader (>= 2.2.2), applist (>= 1.5.7)
 Architecture: iphoneos-arm
-Description: Show Notification Icons in the status bar
-Maintainer: n00neimp0rtant
-Author: n00neimp0rtant
+Description: Show Notification Icons in the status bar. Unofficial version for my personal use, compiled for iOS7 and armv7 and arm64.
+Author: tushaoye <tushaoye@qq.com>
+Maintainer: tushaoye <tushaoye@qq.com>
 Section: Tweaks

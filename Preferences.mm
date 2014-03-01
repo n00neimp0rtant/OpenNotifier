@@ -243,6 +243,18 @@ static ONPreferences* _instance;
 	[self save];
 }
 
+-(bool)hideMail
+{
+	return [_data.allKeys containsObject:ONHideMailKey] ? [[_data objectForKey:ONHideMailKey] boolValue] : false;
+}
+
+-(void)setHideMail:(bool)value
+{
+	[_data setObject:NSBool(value) forKey:ONHideMailKey];
+//    [self save];
+	[self saveWithNotification:HideMailChangedNotification];
+}
+
 -(void)reload
 {
 	if (_applications) { [_applications release]; _applications = nil; }
@@ -286,7 +298,7 @@ static ONPreferences* _instance;
 }
 
 -(void)setSilentModeEnabled:(bool)value 
-{ 
+{
 	[_data setObject:NSBool(value) forKey:ONSilentModeEnabledKey];
 	[self saveWithNotification:SilentModeChangedNotification];
 }
@@ -300,6 +312,28 @@ static ONPreferences* _instance;
 {
 	[_data setObject:NSBool(value) forKey:ONSilentIconLeftKey];
 	[self saveWithNotification:SilentModeChangedNotification];
+}
+
+-(bool)vibrateModeEnabled
+{
+	return [_data.allKeys containsObject:ONVibrateModeEnabledKey] ? [[_data objectForKey:ONVibrateModeEnabledKey] boolValue] : true;
+}
+
+-(void)setVibrateModeEnabled:(bool)value
+{
+	[_data setObject:NSBool(value) forKey:ONVibrateModeEnabledKey];
+	[self saveWithNotification:VibrateModeChangedNotification];
+}
+
+-(bool)vibrateIconOnLeft
+{
+	return [_data.allKeys containsObject:ONVibrateIconLeftKey] ? [[_data objectForKey:ONVibrateIconLeftKey] boolValue]: false;
+}
+
+-(void)setVibrateIconOnLeft:(bool)value
+{
+	[_data setObject:NSBool(value) forKey:ONVibrateIconLeftKey];
+	[self saveWithNotification:VibrateModeChangedNotification];
 }
 @end
 #pragma mark #endregion
