@@ -147,7 +147,7 @@ static NSMutableArray* statusIcons;
 		
 	if ([key isEqualToString:ONEnabledKey]) return NSBool(preferences.enabled);
 	if ([key isEqualToString:ONIconsLeftKey]) return NSBool(preferences.iconsOnLeft);
-    if ([key isEqualToString:ONHideMailKey]) return NSBool(preferences.hideMail);
+        if ([key isEqualToString:ONHideMailKey]) return NSBool(preferences.hideMail);
 	if ([key isEqualToString:ONSilentModeEnabledKey]) return NSBool(preferences.silentModeEnabled);
 	if ([key isEqualToString:ONSilentIconLeftKey]) return NSBool(preferences.silentIconOnLeft);
 	if ([key isEqualToString:ONVibrateModeEnabledKey]) return NSBool(preferences.vibrateModeEnabled);
