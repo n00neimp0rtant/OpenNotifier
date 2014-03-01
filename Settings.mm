@@ -162,7 +162,7 @@ static NSMutableArray* statusIcons;
 	
 	if ([key isEqualToString:ONEnabledKey]) preferences.enabled = [value boolValue];
 	if ([key isEqualToString:ONIconsLeftKey]) preferences.iconsOnLeft = [value boolValue];
-    if ([key isEqualToString:ONHideMailKey]) preferences.hideMail = [value boolValue];
+        if ([key isEqualToString:ONHideMailKey]) preferences.hideMail = [value boolValue];
 	if ([key isEqualToString:ONSilentModeEnabledKey]) preferences.silentModeEnabled = [value boolValue];
 	if ([key isEqualToString:ONSilentIconLeftKey]) preferences.silentIconOnLeft = [value boolValue];
 	if ([key isEqualToString:ONVibrateModeEnabledKey]) preferences.vibrateModeEnabled = [value boolValue];
